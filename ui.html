@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <style>
+    :root {
+      --bg: #ffffff;
+      --fg: #1a1a1a;
+      --muted: #6b6b6b;
+      --border: #e5e5e5;
+      --accent: #2556ff;
+      --accent-hover: #1a3fcc;
+      --danger: #de4040;
+      --success: #2ebf66;
+      --surface: #f7f7f7;
+      --radius: 8px;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      padding: 16px;
+      font: 12px/1.45 Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--fg);
+      background: var(--bg);
+    }
+    h1 {
+      margin: 0 0 4px;
+      font-size: 14px;
+      font-weight: 600;
+    }
+    .subtitle {
+      margin: 0 0 16px;
+      color: var(--muted);
+      font-size: 11px;
+    }
+    section {
+      margin-bottom: 16px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border);
+    }
+    section:last-of-type { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+    .label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--muted);
+    }
+    .row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 6px;
+    }
+    .row label {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+    }
+    select {
+      width: 100%;
+      padding: 6px 8px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: var(--bg);
+      font: inherit;
+      color: var(--fg);
+    }
+    .field { margin-bottom: 10px; }
+    .field > span {
+      display: block;
+      margin-bottom: 4px;
+      font-size: 11px;
+      color: var(--muted);
+    }
+    .template {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px;
+      margin-bottom: 6px;
+      background: var(--surface);
+      border-radius: var(--radius);
+    }
+    .template .meta {
+      flex: 1;
+      min-width: 0;
+    }
+    .template .meta .name {
+      font-weight: 500;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .template .meta .empty {
+      color: var(--muted);
+      font-style: italic;
+    }
+    .template .meta .slot-label {
+      font-size: 10px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+    button {
+      border: none;
+      border-radius: 6px;
+      padding: 6px 10px;
+      font: inherit;
+      font-weight: 500;
+      cursor: pointer;
+      background: var(--accent);
+      color: #fff;
+      white-space: nowrap;
+    }
+    button:hover { background: var(--accent-hover); }
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    button.secondary {
+      background: var(--bg);
+      color: var(--fg);
+      border: 1px solid var(--border);
+    }
+    button.secondary:hover { background: var(--surface); }
+    button.ghost {
+      background: transparent;
+      color: var(--muted);
+      padding: 4px 6px;
+    }
+    button.ghost:hover { color: var(--danger); }
+    .actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+    }
+    .actions button.primary {
+      flex: 1;
+      padding: 10px;
+      font-size: 13px;
+    }
+    #status {
+      margin-top: 12px;
+      padding: 10px;
+      border-radius: var(--radius);
+      background: var(--surface);
+      font-size: 11px;
+      display: none;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    #status.visible { display: block; }
+    #status.error { background: #fdecec; color: var(--danger); }
+    #status.success { background: #eaf8f0; color: #1a7a45; }
+    #status.progress { color: var(--muted); }
+    .hint {
+      margin: 0 0 8px;
+      font-size: 11px;
+      color: var(--muted);
+    }
+    .brand-list {
+      max-height: 220px;
+      overflow-y: auto;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+    }
+    .brand-row {
+      display: grid;
+      grid-template-columns: 1fr auto 72px;
+      gap: 6px;
+      align-items: center;
+      padding: 6px 8px;
+      border-bottom: 1px solid var(--border);
+    }
+    .brand-row:last-child { border-bottom: none; }
+    .brand-row .fam {
+      font-weight: 500;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .brand-row select {
+      width: 72px;
+      padding: 4px 4px;
+    }
+    .brand-empty {
+      padding: 10px 8px;
+      color: var(--muted);
+      font-style: italic;
+    }
+  </style>
+</head>
+<body>
+  <h1>Style Guide Editor</h1>
+  <p class="subtitle">Generate and update color style guide frames (<code>$primitives-parent</code>, <code>$contrast-parent</code>, <code>$token-parent</code>) from Figma variables.</p>
+
+  <section>
+    <div class="label">What to update</div>
+    <div class="row"><label><input type="checkbox" id="cat-primitives" checked /> Primitive colors</label></div>
+    <div class="row"><label><input type="checkbox" id="cat-tokens" checked /> Token charts</label></div>
+    <div class="row"><label><input type="checkbox" id="cat-contrast" checked /> Contrast checks</label></div>
+  </section>
+
+  <section>
+    <div class="label">Where to look</div>
+    <div class="row"><label><input type="radio" name="scope" value="selection" /> Current selection</label></div>
+    <div class="row"><label><input type="radio" name="scope" value="page" checked /> Current page</label></div>
+    <div class="row"><label><input type="radio" name="scope" value="file" /> Entire file</label></div>
+  </section>
+
+  <section>
+    <div class="label">Collections</div>
+    <div class="field">
+      <span>Primitives</span>
+      <select id="primitive-collection"></select>
+    </div>
+    <div class="field">
+      <span>Tokens</span>
+      <select id="token-collection"></select>
+    </div>
+  </section>
+
+  <section>
+    <div class="label">Templates</div>
+    <div id="templates"></div>
+  </section>
+
+  <section>
+    <div class="label">Brand colors</div>
+    <p class="hint">For each primitive set, optionally mark one shade as the brand color. That shade uses the brand swatch template.</p>
+    <div id="brand-sets"></div>
+  </section>
+
+  <div class="actions">
+    <button class="primary" id="run">Update style guide</button>
+  </div>
+
+  <div id="status"></div>
+
+  <script>
+    const TEMPLATE_SLOTS = [
+      { id: 'swatch', label: 'Primitive swatch' },
+      { id: 'brandSwatch', label: 'Brand swatch' },
+      { id: 'contrastChart', label: 'Contrast chart' },
+      { id: 'tokenRow', label: 'Token row' },
+      { id: 'sectionHeading', label: 'Section heading' },
+      { id: 'groupHeading', label: 'Token group heading' }
+    ];
+
+    const templates = {};
+    let families = [];
+    let brandColors = {};
+
+    const el = (id) => document.getElementById(id);
+    const statusEl = el('status');
+
+    function setStatus(message, kind) {
+      statusEl.textContent = message;
+      statusEl.className = 'visible ' + (kind || '');
+    }
+
+    function clearStatus() {
+      statusEl.className = '';
+      statusEl.textContent = '';
+    }
+
+    function renderTemplates() {
+      const root = el('templates');
+      root.innerHTML = '';
+      for (const slot of TEMPLATE_SLOTS) {
+        const ref = templates[slot.id];
+        const row = document.createElement('div');
+        row.className = 'template';
+        row.innerHTML =
+          '<div class="meta">' +
+            '<div class="slot-label">' + slot.label + '</div>' +
+            (ref
+              ? '<div class="name" title="' + escapeHtml(ref.name) + '">' + escapeHtml(ref.name) + '</div>'
+              : '<div class="empty">Not set — select on canvas</div>') +
+          '</div>';
+
+        const useBtn = document.createElement('button');
+        useBtn.className = 'secondary';
+        useBtn.textContent = 'Use selection';
+        useBtn.onclick = () => parent.postMessage({ pluginMessage: { type: 'capture-template', slot: slot.id } }, '*');
+        row.appendChild(useBtn);
+
+        if (ref) {
+          const clearBtn = document.createElement('button');
+          clearBtn.className = 'ghost';
+          clearBtn.textContent = 'Clear';
+          clearBtn.onclick = () => parent.postMessage({ pluginMessage: { type: 'clear-template', slot: slot.id } }, '*');
+          row.appendChild(clearBtn);
+        }
+
+        root.appendChild(row);
+      }
+    }
+
+    function escapeHtml(s) {
+      return String(s)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    function fillCollections(select, collections, selectedId) {
+      select.innerHTML = '';
+      const empty = document.createElement('option');
+      empty.value = '';
+      empty.textContent = '— Select —';
+      select.appendChild(empty);
+      for (const c of collections) {
+        const opt = document.createElement('option');
+        opt.value = c.id;
+        opt.textContent = c.name + (c.modeCount > 1 ? ' (' + c.modeCount + ' modes)' : '');
+        if (c.id === selectedId) opt.selected = true;
+        select.appendChild(opt);
+      }
+    }
+
+    function getCategories() {
+      return {
+        primitives: el('cat-primitives').checked,
+        contrast: el('cat-contrast').checked,
+        tokens: el('cat-tokens').checked
+      };
+    }
+
+    function getScope() {
+      const checked = document.querySelector('input[name="scope"]:checked');
+      return checked ? checked.value : 'page';
+    }
+
+    function preferredShade(shades) {
+      if (shades.indexOf('600') !== -1) return '600';
+      if (shades.indexOf('500') !== -1) return '500';
+      return shades[0] || '';
+    }
+
+    function renderBrandSets() {
+      const root = el('brand-sets');
+      root.innerHTML = '';
+      if (!families.length) {
+        const empty = document.createElement('div');
+        empty.className = 'brand-empty';
+        empty.textContent = 'Select a primitives collection to configure brand colors.';
+        root.appendChild(empty);
+        return;
+      }
+      const list = document.createElement('div');
+      list.className = 'brand-list';
+      for (const fam of families) {
+        const selected = brandColors[fam.path] || '';
+        const row = document.createElement('div');
+        row.className = 'brand-row';
+        row.dataset.path = fam.path;
+
+        const name = document.createElement('div');
+        name.className = 'fam';
+        name.title = fam.path;
+        name.textContent = fam.label;
+        row.appendChild(name);
+
+        const checkLabel = document.createElement('label');
+        const check = document.createElement('input');
+        check.type = 'checkbox';
+        check.checked = Boolean(selected);
+        checkLabel.appendChild(check);
+        checkLabel.appendChild(document.createTextNode(' Brand'));
+        row.appendChild(checkLabel);
+
+        const select = document.createElement('select');
+        const none = document.createElement('option');
+        none.value = '';
+        none.textContent = '—';
+        select.appendChild(none);
+        for (const shade of fam.shades) {
+          const opt = document.createElement('option');
+          opt.value = shade;
+          opt.textContent = shade;
+          if (shade === selected) opt.selected = true;
+          select.appendChild(opt);
+        }
+        select.disabled = !check.checked;
+        row.appendChild(select);
+
+        check.onchange = () => {
+          if (check.checked) {
+            select.disabled = false;
+            if (!select.value) select.value = preferredShade(fam.shades);
+            brandColors[fam.path] = select.value;
+          } else {
+            select.disabled = true;
+            select.value = '';
+            delete brandColors[fam.path];
+          }
+        };
+        select.onchange = () => {
+          if (check.checked && select.value) brandColors[fam.path] = select.value;
+          else delete brandColors[fam.path];
+        };
+
+        list.appendChild(row);
+      }
+      root.appendChild(list);
+    }
+
+    function getBrandColors() {
+      const next = {};
+      for (const path of Object.keys(brandColors)) {
+        if (brandColors[path]) next[path] = brandColors[path];
+      }
+      return next;
+    }
+
+    function applySettings(settings) {
+      el('cat-primitives').checked = settings.lastCategories.primitives;
+      el('cat-contrast').checked = settings.lastCategories.contrast;
+      el('cat-tokens').checked = settings.lastCategories.tokens;
+      const scopeRadio = document.querySelector('input[name="scope"][value="' + settings.lastScope + '"]');
+      if (scopeRadio) scopeRadio.checked = true;
+      Object.assign(templates, settings.templates || {});
+      brandColors = Object.assign({}, settings.brandColors || {});
+      renderTemplates();
+      renderBrandSets();
+    }
+
+    el('run').onclick = () => {
+      const categories = getCategories();
+      if (!categories.primitives && !categories.contrast && !categories.tokens) {
+        setStatus('Select at least one category to update.', 'error');
+        return;
+      }
+      clearStatus();
+      setStatus('Running…', 'progress');
+      el('run').disabled = true;
+      parent.postMessage({
+        pluginMessage: {
+          type: 'run',
+          scope: getScope(),
+          categories,
+          primitiveCollectionId: el('primitive-collection').value || null,
+          tokenCollectionId: el('token-collection').value || null,
+          brandColors: getBrandColors()
+        }
+      }, '*');
+    };
+
+    function formatCounts(label, c) {
+      if (!c) return '';
+      return label + ': +' + c.created + ' ~' + c.updated + ' −' + c.removed;
+    }
+
+    window.onmessage = (event) => {
+      const msg = event.data.pluginMessage;
+      if (!msg) return;
+
+      if (msg.type === 'ready') {
+        applySettings(msg.settings);
+        const primId = msg.settings.primitiveCollectionId || msg.detected.primitiveCollectionId;
+        const tokId = msg.settings.tokenCollectionId || msg.detected.tokenCollectionId;
+        fillCollections(el('primitive-collection'), msg.collections, primId);
+        fillCollections(el('token-collection'), msg.collections, tokId);
+        families = msg.families || [];
+        renderBrandSets();
+
+        el('primitive-collection').onchange = () => {
+          const id = el('primitive-collection').value;
+          if (!id) {
+            families = [];
+            renderBrandSets();
+            return;
+          }
+          parent.postMessage({ pluginMessage: { type: 'load-families', collectionId: id } }, '*');
+        };
+      }
+
+      if (msg.type === 'families') {
+        families = msg.families || [];
+        renderBrandSets();
+      }
+
+      if (msg.type === 'template-captured') {
+        templates[msg.slot] = msg.ref;
+        renderTemplates();
+        setStatus('Captured "' + msg.ref.name + '".', 'success');
+      }
+
+      if (msg.type === 'template-cleared') {
+        delete templates[msg.slot];
+        renderTemplates();
+        clearStatus();
+      }
+
+      if (msg.type === 'error') {
+        el('run').disabled = false;
+        setStatus(msg.message, 'error');
+      }
+
+      if (msg.type === 'run-progress') {
+        setStatus(msg.message, 'progress');
+      }
+
+      if (msg.type === 'run-complete') {
+        el('run').disabled = false;
+        const r = msg.report;
+        const lines = [];
+        const p = formatCounts('Primitives', r.primitives);
+        const c = formatCounts('Contrast', r.contrast);
+        const t = formatCounts('Tokens', r.tokens);
+        if (p) lines.push(p);
+        if (c) lines.push(c);
+        if (t) lines.push(t);
+        if (r.warnings && r.warnings.length) {
+          lines.push('');
+          lines.push('Warnings:');
+          r.warnings.slice(0, 5).forEach(w => lines.push('• ' + w));
+          if (r.warnings.length > 5) lines.push('• …and ' + (r.warnings.length - 5) + ' more');
+        }
+        if (r.errors && r.errors.length) {
+          lines.push('');
+          lines.push('Errors:');
+          r.errors.forEach(e => lines.push('• ' + e));
+          setStatus(lines.join('\n') || 'Done with errors.', 'error');
+        } else {
+          setStatus(lines.join('\n') || 'Done.', 'success');
+        }
+      }
+    };
+
+    parent.postMessage({ pluginMessage: { type: 'init' } }, '*');
+  </script>
+</body>
+</html>

@@ -1,0 +1,12 @@
+{
+  "name": "Style Guide Editor",
+  "id": "1666560082051747196",
+  "api": "1.0.0",
+  "main": "code.js",
+  "ui": "ui.html",
+  "editorType": ["figma"],
+  "documentAccess": "dynamic-page",
+  "networkAccess": {
+    "allowedDomains": ["none"]
+  }
+}

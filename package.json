@@ -1,0 +1,15 @@
+{
+  "name": "figma-style-guide-editor",
+  "version": "2.0.0",
+  "description": "Figma plugin: generate and update color style guide frames ($primitives, $contrast, $token) from Figma variables.",
+  "scripts": {
+    "build": "npx esbuild src/code.ts --bundle --outfile=code.js --target=es2017 --loader:.html=text",
+    "watch": "npx esbuild src/code.ts --bundle --outfile=code.js --target=es2017 --loader:.html=text --watch",
+    "typecheck": "npx tsc --noEmit -p tsconfig.json"
+  },
+  "devDependencies": {
+    "@figma/plugin-typings": "^1.132.0",
+    "esbuild": "^0.21.0",
+    "typescript": "^5.4.0"
+  }
+}
